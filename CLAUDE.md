@@ -1,0 +1,1 @@
+- please bare in mind that I already and always running my development with bun dev in the separate terminal/session.
