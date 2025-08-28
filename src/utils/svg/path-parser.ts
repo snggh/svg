@@ -49,6 +49,24 @@ export function commandsToPathString(commands: SVGPathCommand[]): string {
     .trim()
 }
 
+const BASE_GRID_SIZE = 20
+
+/**
+ * Convert grid-based commands to pixel-based path string for rendering
+ */
+export function commandsToPixelPathString(commands: SVGPathCommand[]): string {
+  return commands
+    .map(cmd => {
+      const letter = cmd.relative ? cmd.type.toLowerCase() : cmd.type
+      // Convert grid coordinates to pixel coordinates
+      const pixelPoints = cmd.points.map(point => point * BASE_GRID_SIZE)
+      const points = pixelPoints.join(' ')
+      return `${letter}${points ? ' ' + points : ''}`
+    })
+    .join(' ')
+    .trim()
+}
+
 /**
  * Convert relative commands to absolute
  */

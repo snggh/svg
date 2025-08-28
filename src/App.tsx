@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { SvgViewport, PathRenderer } from '@/components/svg-editor'
+import { PathCommandEditor } from '@/components/svg-editor/path-command-editor'
 import { useEditorStore } from '@/stores/editor-store'
 import { parsePathString } from '@/utils/svg/path-parser'
 import { Button } from '@/components/ui/button'
@@ -18,23 +19,23 @@ function App() {
       const demoPaths: SVGPath[] = [
         {
           id: 'demo-1',
-          commands: parsePathString('M 100 100 L 200 100 L 150 150 Z'),
+          commands: parsePathString('M 1 1 L 6 1 L 3 4 Z'),
           fill: 'none',
-          stroke: 'hsl(var(--primary))',
+          stroke: '#000000',
           strokeWidth: 2,
         },
         {
           id: 'demo-2', 
-          commands: parsePathString('M 250 100 Q 300 50 350 100 T 450 100'),
+          commands: parsePathString('M 8 2 Q 10 0 12 2 T 16 2'),
           fill: 'none',
-          stroke: 'hsl(var(--destructive))',
-          strokeWidth: 3,
+          stroke: '#000000',
+          strokeWidth: 2,
         },
         {
           id: 'demo-3',
-          commands: parsePathString('M 500 100 C 520 80 580 80 600 100 S 660 120 680 100'),
+          commands: parsePathString('M 1 6 C 2 5 4 5 5 6 S 7 7 8 6'),
           fill: 'none',
-          stroke: 'hsl(var(--secondary-foreground))',
+          stroke: '#000000',
           strokeWidth: 2,
         },
       ]
@@ -134,6 +135,9 @@ function App() {
                 )}
               </div>
             </div>
+            
+            {/* Path Command Editor */}
+            <PathCommandEditor />
             
             <div>
               <h3 className="text-sm font-medium mb-2">Instructions</h3>

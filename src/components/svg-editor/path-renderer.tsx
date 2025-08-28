@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useEditorStore } from '@/stores/editor-store'
-import { commandsToPathString } from '@/utils/svg/path-parser'
+import { commandsToPixelPathString } from '@/utils/svg/path-parser'
 import type { SVGPath } from '@/types'
 
 interface PathRendererProps {
@@ -30,7 +30,7 @@ interface PathElementProps {
 
 function PathElement({ path, isSelected }: PathElementProps) {
   const pathString = useMemo(() => {
-    return commandsToPathString(path.commands)
+    return commandsToPixelPathString(path.commands)
   }, [path.commands])
 
   const strokeWidth = useMemo(() => {
@@ -83,6 +83,7 @@ function PathPoints({ path }: PathPointsProps) {
   const { selectedPoints } = useEditorStore()
   
   const points = useMemo(() => {
+    const BASE_GRID_SIZE = 20
     const allPoints: { x: number; y: number; index: number; type: 'point' | 'control' }[] = []
     let currentX = 0
     let currentY = 0
@@ -92,13 +93,23 @@ function PathPoints({ path }: PathPointsProps) {
         case 'M':
           currentX = cmd.relative ? currentX + cmd.points[0] : cmd.points[0]
           currentY = cmd.relative ? currentY + cmd.points[1] : cmd.points[1]
-          allPoints.push({ x: currentX, y: currentY, index: cmdIndex, type: 'point' })
+          allPoints.push({ 
+            x: currentX * BASE_GRID_SIZE, 
+            y: currentY * BASE_GRID_SIZE, 
+            index: cmdIndex, 
+            type: 'point' 
+          })
           break
           
         case 'L':
           currentX = cmd.relative ? currentX + cmd.points[0] : cmd.points[0]
           currentY = cmd.relative ? currentY + cmd.points[1] : cmd.points[1]
-          allPoints.push({ x: currentX, y: currentY, index: cmdIndex, type: 'point' })
+          allPoints.push({ 
+            x: currentX * BASE_GRID_SIZE, 
+            y: currentY * BASE_GRID_SIZE, 
+            index: cmdIndex, 
+            type: 'point' 
+          })
           break
           
         case 'C':
@@ -108,25 +119,50 @@ function PathPoints({ path }: PathPointsProps) {
           const cp2x = cmd.relative ? currentX + cmd.points[2] : cmd.points[2]
           const cp2y = cmd.relative ? currentY + cmd.points[3] : cmd.points[3]
           
-          allPoints.push({ x: cp1x, y: cp1y, index: cmdIndex, type: 'control' })
-          allPoints.push({ x: cp2x, y: cp2y, index: cmdIndex, type: 'control' })
+          allPoints.push({ 
+            x: cp1x * BASE_GRID_SIZE, 
+            y: cp1y * BASE_GRID_SIZE, 
+            index: cmdIndex, 
+            type: 'control' 
+          })
+          allPoints.push({ 
+            x: cp2x * BASE_GRID_SIZE, 
+            y: cp2y * BASE_GRID_SIZE, 
+            index: cmdIndex, 
+            type: 'control' 
+          })
           
           // End point
           currentX = cmd.relative ? currentX + cmd.points[4] : cmd.points[4]
           currentY = cmd.relative ? currentY + cmd.points[5] : cmd.points[5]
-          allPoints.push({ x: currentX, y: currentY, index: cmdIndex, type: 'point' })
+          allPoints.push({ 
+            x: currentX * BASE_GRID_SIZE, 
+            y: currentY * BASE_GRID_SIZE, 
+            index: cmdIndex, 
+            type: 'point' 
+          })
           break
           
         case 'Q':
           // Control point
           const cpx = cmd.relative ? currentX + cmd.points[0] : cmd.points[0]
           const cpy = cmd.relative ? currentY + cmd.points[1] : cmd.points[1]
-          allPoints.push({ x: cpx, y: cpy, index: cmdIndex, type: 'control' })
+          allPoints.push({ 
+            x: cpx * BASE_GRID_SIZE, 
+            y: cpy * BASE_GRID_SIZE, 
+            index: cmdIndex, 
+            type: 'control' 
+          })
           
           // End point
           currentX = cmd.relative ? currentX + cmd.points[2] : cmd.points[2]
           currentY = cmd.relative ? currentY + cmd.points[3] : cmd.points[3]
-          allPoints.push({ x: currentX, y: currentY, index: cmdIndex, type: 'point' })
+          allPoints.push({ 
+            x: currentX * BASE_GRID_SIZE, 
+            y: currentY * BASE_GRID_SIZE, 
+            index: cmdIndex, 
+            type: 'point' 
+          })
           break
       }
     })
