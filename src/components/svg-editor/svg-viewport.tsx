@@ -90,20 +90,20 @@ export function SvgViewport({
             )}
           </defs>
           
-          {/* Grid background */}
+          {/* Grid background - outside of transform group */}
           {gridVisible && (
             <rect width="100%" height="100%" fill="url(#grid)" />
           )}
           
           {/* Main content group with transform */}
           <g
-            transform={`scale(${transform.scale}) translate(${transform.translateX}, ${transform.translateY})`}
+            transform={`translate(${transform.translateX}, ${transform.translateY}) scale(${transform.scale})`}
           >
             {children}
-            
-            {/* Drawing overlay for interactive path creation */}
-            <DrawingOverlay screenToSVG={screenToSVG} />
           </g>
+          
+          {/* Drawing overlay for interactive path creation - outside transform for proper event handling */}
+          <DrawingOverlay screenToSVG={screenToSVG} />
         </svg>
       </div>
     </div>
@@ -117,30 +117,33 @@ interface GridPatternProps {
 }
 
 function GridPattern({ transform }: GridPatternProps) {
-  const gridSize = 20
-  const scaledGridSize = gridSize * transform.scale
+  const baseGridSize = 20
   
-  // Only show grid when zoomed in enough to see it clearly
-  if (scaledGridSize < 5) return null
+  // Calculate grid size based on zoom level
+  const gridSize = baseGridSize * transform.scale
   
-  const offsetX = transform.translateX % scaledGridSize
-  const offsetY = transform.translateY % scaledGridSize
+  // Only show grid when it's not too small or too large
+  if (gridSize < 5 || gridSize > 200) return null
+  
+  // Calculate offset to keep grid aligned during pan
+  const offsetX = transform.translateX % gridSize
+  const offsetY = transform.translateY % gridSize
   
   return (
     <pattern
       id="grid"
-      width={scaledGridSize}
-      height={scaledGridSize}
+      width={gridSize}
+      height={gridSize}
       patternUnits="userSpaceOnUse"
       x={offsetX}
       y={offsetY}
     >
       <path
-        d={`M ${scaledGridSize} 0 L 0 0 0 ${scaledGridSize}`}
+        d={`M ${gridSize} 0 L 0 0 0 ${gridSize}`}
         fill="none"
         stroke="hsl(var(--border))"
-        strokeWidth="1"
-        opacity="0.3"
+        strokeWidth={Math.max(0.5, Math.min(2, transform.scale))}
+        opacity={Math.max(0.1, Math.min(0.5, transform.scale * 0.3))}
       />
     </pattern>
   )

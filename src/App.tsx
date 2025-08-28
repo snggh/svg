@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { SvgViewport, PathRenderer } from '@/components/svg-editor'
 import { useEditorStore } from '@/stores/editor-store'
 import { parsePathString } from '@/utils/svg/path-parser'
@@ -8,9 +8,13 @@ import type { SVGPath } from '@/types'
 function App() {
   const { zoom, tool, setTool, gridVisible, toggleGrid, resetView, addPath, paths, selectedPath, setSelectedPath } = useEditorStore()
 
-  // Add demo paths on first load
+  // Add demo paths on first load - use ref to prevent duplicate calls
+  const hasInitialized = useRef(false)
+  
   useEffect(() => {
-    if (paths.length === 0) {
+    if (paths.length === 0 && !hasInitialized.current) {
+      hasInitialized.current = true
+      
       const demoPaths: SVGPath[] = [
         {
           id: 'demo-1',
