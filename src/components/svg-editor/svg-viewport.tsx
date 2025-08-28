@@ -172,9 +172,9 @@ interface GridNumbersProps {
 function GridNumbers({ transform, width, height }: GridNumbersProps) {
   const baseGridSize = 20
   const gridSize = baseGridSize * transform.scale
-  const numberSpacing = baseGridSize * 5 * transform.scale // Every 5 grid units
+  const numberSpacing = gridSize // Show number at every grid line
   
-  if (numberSpacing < 50) return null // Only show numbers when there's enough space
+  if (numberSpacing < 30) return null // Only show numbers when there's enough space
   
   const gridNumbers = []
   
@@ -182,11 +182,11 @@ function GridNumbers({ transform, width, height }: GridNumbersProps) {
   const startX = Math.floor(-transform.translateX / numberSpacing) * numberSpacing + transform.translateX
   const startY = Math.floor(-transform.translateY / numberSpacing) * numberSpacing + transform.translateY
   
-  // Add horizontal numbers (x-axis)
+  // Add horizontal numbers (x-axis) - every grid line
   for (let x = startX; x < width + numberSpacing; x += numberSpacing) {
     if (x >= 0 && x <= width) {
-      // Calculate actual grid value without multiplying by 5
-      const gridValue = Math.round((x - transform.translateX) / gridSize) * 5
+      // Calculate actual grid value - no multiplication
+      const gridValue = Math.round((x - transform.translateX) / gridSize)
       gridNumbers.push(
         <text
           key={`x-${gridValue}`}
@@ -203,11 +203,11 @@ function GridNumbers({ transform, width, height }: GridNumbersProps) {
     }
   }
   
-  // Add vertical numbers (y-axis)
+  // Add vertical numbers (y-axis) - every grid line
   for (let y = startY; y < height + numberSpacing; y += numberSpacing) {
     if (y >= 15 && y <= height) { // Offset to avoid overlap with x-axis numbers
-      // Calculate actual grid value without multiplying by 5
-      const gridValue = Math.round((y - transform.translateY) / gridSize) * 5
+      // Calculate actual grid value - no multiplication
+      const gridValue = Math.round((y - transform.translateY) / gridSize)
       gridNumbers.push(
         <text
           key={`y-${gridValue}`}

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react'
+import { useCallback, useRef, useEffect, useState } from 'react'
 import { useEditorStore } from '@/stores/editor-store'
 import type { SVGPoint } from '@/types'
 
@@ -16,7 +16,7 @@ export function useViewport({ containerRef }: UseViewportOptions) {
   const { zoom, pan, setZoom, setPan } = useEditorStore()
   const isPanning = useRef(false)
   const lastPanPoint = useRef<SVGPoint>({ x: 0, y: 0 })
-  const isSpacePressed = useRef(false)
+  const [isSpacePressed, setIsSpacePressed] = useState(false)
 
   const getViewportTransform = useCallback((): ViewportTransform => ({
     scale: zoom,
@@ -101,14 +101,14 @@ export function useViewport({ containerRef }: UseViewportOptions) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.code === 'Space' && !event.repeat && document.activeElement?.tagName !== 'INPUT') {
         event.preventDefault()
-        isSpacePressed.current = true
+        setIsSpacePressed(true)
       }
     }
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (event.code === 'Space') {
         event.preventDefault()
-        isSpacePressed.current = false
+        setIsSpacePressed(false)
         if (isPanning.current) {
           isPanning.current = false
         }
@@ -143,6 +143,6 @@ export function useViewport({ containerRef }: UseViewportOptions) {
     // Utilities
     fitToContent,
     isPanning: isPanning.current,
-    isSpacePressed: isSpacePressed.current,
+    isSpacePressed,
   }
 }
