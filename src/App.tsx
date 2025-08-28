@@ -153,16 +153,12 @@ function App() {
         </aside>
 
         {/* Canvas area */}
-        <main className="flex-1 p-4 bg-gray-50">
-          <div className="w-full h-full flex items-center justify-center">
-            <SvgViewport 
-              width={800}
-              height={600}
-              className="shadow-lg rounded-lg"
-            >
-              <PathRenderer />
-            </SvgViewport>
-          </div>
+        <main className="flex-1 bg-gray-50">
+          <SvgViewport 
+            className="w-full h-full shadow-lg"
+          >
+            <PathRenderer />
+          </SvgViewport>
         </main>
       </div>
     </div>

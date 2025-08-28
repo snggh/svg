@@ -1,23 +1,20 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useViewport } from '@/hooks/use-viewport'
 import { useEditorStore } from '@/stores/editor-store'
 import { DrawingOverlay } from './drawing-overlay'
 import { cn } from '@/lib/utils'
 
 interface SvgViewportProps {
-  width?: number
-  height?: number
   className?: string
   children?: React.ReactNode
 }
 
 export function SvgViewport({ 
-  width = 800, 
-  height = 600, 
   className, 
   children 
 }: SvgViewportProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const { gridVisible, tool } = useEditorStore()
   
   const {
@@ -30,6 +27,37 @@ export function SvgViewport({
     isPanning,
     isSpacePressed,
   } = useViewport({ containerRef })
+
+  // Handle container resize
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const updateDimensions = () => {
+      const rect = container.getBoundingClientRect()
+      if (rect.width > 0 && rect.height > 0) {
+        setDimensions({ width: rect.width, height: rect.height })
+      }
+    }
+
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          setDimensions({ width, height })
+        }
+      }
+    })
+
+    // Set initial dimensions with a slight delay to ensure layout is complete
+    const timeoutId = setTimeout(updateDimensions, 0)
+    resizeObserver.observe(container)
+
+    return () => {
+      clearTimeout(timeoutId)
+      resizeObserver.disconnect()
+    }
+  }, [])
 
   // Handle wheel zoom
   useEffect(() => {
@@ -54,6 +82,18 @@ export function SvgViewport({
     }
   }
 
+  // Don't render SVG until we have valid dimensions
+  if (dimensions.width === 0 || dimensions.height === 0) {
+    return (
+      <div className={cn('relative overflow-hidden bg-white border border-border', className)}>
+        <div
+          ref={containerRef}
+          className="w-full h-full relative select-none"
+        />
+      </div>
+    )
+  }
+
   return (
     <div className={cn('relative overflow-hidden bg-white border border-border', className)}>
       <div
@@ -62,12 +102,11 @@ export function SvgViewport({
           'w-full h-full relative select-none',
           getCursorStyle()
         )}
-        style={{ width, height }}
       >
         <svg
           width="100%"
           height="100%"
-          viewBox={`0 0 ${width} ${height}`}
+          viewBox={`0 0 ${dimensions.width} ${dimensions.height}`}
           className="absolute inset-0"
           onMouseDown={(e) => {
             // Space + drag has highest priority for panning
@@ -85,8 +124,8 @@ export function SvgViewport({
             {gridVisible && (
               <GridPattern
                 transform={transform}
-                width={width}
-                height={height}
+                width={dimensions.width}
+                height={dimensions.height}
               />
             )}
           </defs>
@@ -97,8 +136,8 @@ export function SvgViewport({
               <rect width="100%" height="100%" fill="url(#grid)" />
               <GridNumbers
                 transform={transform}
-                width={width}
-                height={height}
+                width={dimensions.width}
+                height={dimensions.height}
               />
             </>
           )}
