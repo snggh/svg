@@ -17,6 +17,7 @@ export function PathRenderer({ className }: PathRendererProps) {
           key={path.id}
           path={path}
           isSelected={path.id === selectedPath}
+          hasSelection={selectedPath !== undefined}
         />
       ))}
     </g>
@@ -26,9 +27,10 @@ export function PathRenderer({ className }: PathRendererProps) {
 interface PathElementProps {
   path: SVGPath
   isSelected: boolean
+  hasSelection: boolean
 }
 
-function PathElement({ path, isSelected }: PathElementProps) {
+function PathElement({ path, isSelected, hasSelection }: PathElementProps) {
   const pathString = useMemo(() => {
     return commandsToPixelPathString(path.commands)
   }, [path.commands])
@@ -38,9 +40,16 @@ function PathElement({ path, isSelected }: PathElementProps) {
   }, [path.strokeWidth, isSelected])
 
   const strokeColor = useMemo(() => {
-    if (isSelected) return 'hsl(var(--primary))'
-    return path.stroke ?? 'hsl(var(--foreground))'
-  }, [path.stroke, isSelected])
+    // Always use the original stroke color
+    return path.stroke ?? '#000000'
+  }, [path.stroke])
+
+  const opacity = useMemo(() => {
+    // If no path is selected, all paths are fully opaque
+    // If a path is selected, only the selected one is fully opaque
+    if (!hasSelection) return 1
+    return isSelected ? 1 : 0.3
+  }, [isSelected, hasSelection])
 
   return (
     <g>
@@ -52,6 +61,7 @@ function PathElement({ path, isSelected }: PathElementProps) {
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
+        opacity={opacity}
         className="transition-all duration-200"
       />
       
@@ -182,8 +192,8 @@ function PathPoints({ path }: PathPointsProps) {
             cx={point.x}
             cy={point.y}
             r={isControlPoint ? 3 : 4}
-            fill={isSelected ? 'hsl(var(--primary))' : 'hsl(var(--background))'}
-            stroke={isControlPoint ? 'hsl(var(--muted-foreground))' : 'hsl(var(--primary))'}
+            fill={isSelected ? '#0066ff' : '#ffffff'}
+            stroke={isControlPoint ? '#0066ff' : '#0066ff'}
             strokeWidth="2"
             className="cursor-pointer hover:scale-110 transition-transform"
             style={{ 
@@ -213,7 +223,7 @@ function PathPoints({ path }: PathPointsProps) {
               y1={controlPoint.y}
               x2={mainPoint.x}
               y2={mainPoint.y}
-              stroke="hsl(var(--muted-foreground))"
+              stroke="#0066ff"
               strokeWidth="1"
               strokeDasharray="3,3"
               opacity="0.5"
