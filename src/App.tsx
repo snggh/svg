@@ -139,12 +139,13 @@ function App() {
               <h3 className="text-sm font-medium mb-2">Instructions</h3>
               <ul className="text-xs text-muted-foreground space-y-1">
                 <li>• Mouse wheel: Zoom in/out</li>
+                <li>• Space + drag: Pan (any tool)</li>
                 <li>• Middle click + drag: Pan</li>
                 <li>• Pan tool + drag: Pan</li>
                 <li>• Pen tool + click: Start/continue path</li>
                 <li>• Double-click: Finish drawing</li>
                 <li>• Enter/Esc: Finish drawing</li>
-                <li>• Grid toggle: Show/hide grid</li>
+                <li>• Grid toggle: Show/hide grid with numbers</li>
                 <li>• Click path name: Select/deselect</li>
               </ul>
             </div>

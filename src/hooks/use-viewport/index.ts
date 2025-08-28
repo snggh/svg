@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useEffect } from 'react'
 import { useEditorStore } from '@/stores/editor-store'
 import type { SVGPoint } from '@/types'
 
@@ -16,6 +16,7 @@ export function useViewport({ containerRef }: UseViewportOptions) {
   const { zoom, pan, setZoom, setPan } = useEditorStore()
   const isPanning = useRef(false)
   const lastPanPoint = useRef<SVGPoint>({ x: 0, y: 0 })
+  const isSpacePressed = useRef(false)
 
   const getViewportTransform = useCallback((): ViewportTransform => ({
     scale: zoom,
@@ -71,6 +72,13 @@ export function useViewport({ containerRef }: UseViewportOptions) {
     lastPanPoint.current = { x: event.clientX, y: event.clientY }
   }, [])
 
+  const handleSpacePanStart = useCallback((event: React.MouseEvent) => {
+    if (isSpacePressed.current) {
+      isPanning.current = true
+      lastPanPoint.current = { x: event.clientX, y: event.clientY }
+    }
+  }, [])
+
   const handlePanMove = useCallback((event: React.MouseEvent) => {
     if (!isPanning.current) return
     
@@ -95,6 +103,32 @@ export function useViewport({ containerRef }: UseViewportOptions) {
     setPan({ x: 0, y: 0 })
   }, [setZoom, setPan])
 
+  // Handle space key for panning
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'Space' && !event.repeat) {
+        event.preventDefault()
+        isSpacePressed.current = true
+      }
+    }
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.code === 'Space') {
+        event.preventDefault()
+        isSpacePressed.current = false
+        isPanning.current = false
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
   return {
     // Transform data
     transform: getViewportTransform(),
@@ -108,11 +142,13 @@ export function useViewport({ containerRef }: UseViewportOptions) {
     // Event handlers
     handleWheelZoom,
     handlePanStart,
+    handleSpacePanStart,
     handlePanMove,
     handlePanEnd,
     
     // Utilities
     fitToContent,
     isPanning: isPanning.current,
+    isSpacePressed: isSpacePressed.current,
   }
 }
