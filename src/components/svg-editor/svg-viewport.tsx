@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, Children, cloneElement, isValidElement } from 'react'
 import { useViewport } from '@/hooks/use-viewport'
 import { useEditorStore } from '@/stores/editor-store'
 import { DrawingOverlay } from './drawing-overlay'
@@ -146,7 +146,11 @@ export function SvgViewport({
           <g
             transform={`translate(${transform.translateX}, ${transform.translateY}) scale(${transform.scale})`}
           >
-            {children}
+            {Children.map(children, child => 
+              isValidElement(child) 
+                ? cloneElement(child, { screenToSVG } as any)
+                : child
+            )}
           </g>
           
           {/* Drawing overlay for interactive path creation */}
