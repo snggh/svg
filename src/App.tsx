@@ -137,6 +137,9 @@ function App() {
                 <li>• Mouse wheel: Zoom in/out</li>
                 <li>• Middle click + drag: Pan</li>
                 <li>• Pan tool + drag: Pan</li>
+                <li>• Pen tool + click: Start/continue path</li>
+                <li>• Double-click: Finish drawing</li>
+                <li>• Enter/Esc: Finish drawing</li>
                 <li>• Grid toggle: Show/hide grid</li>
                 <li>• Click path name: Select/deselect</li>
               </ul>

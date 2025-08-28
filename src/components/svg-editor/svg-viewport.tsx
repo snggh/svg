@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { useViewport } from '@/hooks/use-viewport'
 import { useEditorStore } from '@/stores/editor-store'
+import { DrawingOverlay } from './drawing-overlay'
 import { cn } from '@/lib/utils'
 
 interface SvgViewportProps {
@@ -21,6 +22,7 @@ export function SvgViewport({
   
   const {
     transform,
+    screenToSVG,
     handleWheelZoom,
     handlePanStart,
     handlePanMove,
@@ -60,11 +62,15 @@ export function SvgViewport({
         )}
         style={{ width, height }}
         onMouseDown={(e) => {
-          if (tool === 'pan' || e.button === 1) { // Middle mouse button or pan tool
+          if ((tool === 'pan' || e.button === 1) && tool !== 'pen') { // Middle mouse button or pan tool, but not when pen is active
             handlePanStart(e)
           }
         }}
-        onMouseMove={handlePanMove}
+        onMouseMove={(e) => {
+          if (isPanning) {
+            handlePanMove(e)
+          }
+        }}
         onMouseUp={handlePanEnd}
         onMouseLeave={handlePanEnd}
       >
@@ -94,6 +100,9 @@ export function SvgViewport({
             transform={`scale(${transform.scale}) translate(${transform.translateX}, ${transform.translateY})`}
           >
             {children}
+            
+            {/* Drawing overlay for interactive path creation */}
+            <DrawingOverlay screenToSVG={screenToSVG} />
           </g>
         </svg>
       </div>
