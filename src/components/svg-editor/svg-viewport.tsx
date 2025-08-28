@@ -80,22 +80,6 @@ export function SvgViewport({
               handlePanStart(e)
             }
           }}
-          onMouseMove={(e) => {
-            if (isPanning) {
-              e.stopPropagation()
-              handlePanMove(e)
-            }
-          }}
-          onMouseUp={(_e) => {
-            if (isPanning) {
-              handlePanEnd()
-            }
-          }}
-          onMouseLeave={(_e) => {
-            if (isPanning) {
-              handlePanEnd()
-            }
-          }}
         >
           <defs>
             {gridVisible && (

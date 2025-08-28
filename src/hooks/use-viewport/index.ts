@@ -17,6 +17,7 @@ export function useViewport({ containerRef }: UseViewportOptions) {
   const isPanning = useRef(false)
   const lastPanPoint = useRef<SVGPoint>({ x: 0, y: 0 })
   const [isSpacePressed, setIsSpacePressed] = useState(false)
+  const [isPanningState, setIsPanningState] = useState(false)
 
   const getViewportTransform = useCallback((): ViewportTransform => ({
     scale: zoom,
@@ -68,12 +69,18 @@ export function useViewport({ containerRef }: UseViewportOptions) {
   }, [zoom, pan, screenToSVG, setZoom, setPan])
 
   const handlePanStart = useCallback((event: React.MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
     isPanning.current = true
+    setIsPanningState(true)
     lastPanPoint.current = { x: event.clientX, y: event.clientY }
   }, [])
 
-  const handlePanMove = useCallback((event: React.MouseEvent) => {
+  const handlePanMove = useCallback((event: React.MouseEvent | MouseEvent) => {
     if (!isPanning.current) return
+    
+    event.preventDefault()
+    event.stopPropagation()
     
     const deltaX = event.clientX - lastPanPoint.current.x
     const deltaY = event.clientY - lastPanPoint.current.y
@@ -88,6 +95,7 @@ export function useViewport({ containerRef }: UseViewportOptions) {
 
   const handlePanEnd = useCallback(() => {
     isPanning.current = false
+    setIsPanningState(false)
   }, [])
 
   const fitToContent = useCallback(() => {
@@ -110,7 +118,7 @@ export function useViewport({ containerRef }: UseViewportOptions) {
         event.preventDefault()
         setIsSpacePressed(false)
         if (isPanning.current) {
-          isPanning.current = false
+          handlePanEnd()
         }
       }
     }
@@ -122,7 +130,34 @@ export function useViewport({ containerRef }: UseViewportOptions) {
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('keyup', handleKeyUp)
     }
-  }, [])
+  }, [handlePanEnd])
+
+  // Global mouse event listeners for reliable panning
+  useEffect(() => {
+    const handleGlobalMouseMove = (event: MouseEvent) => {
+      if (isPanning.current) {
+        handlePanMove(event)
+      }
+    }
+
+    const handleGlobalMouseUp = () => {
+      if (isPanning.current) {
+        handlePanEnd()
+      }
+    }
+
+    if (isPanningState) {
+      document.addEventListener('mousemove', handleGlobalMouseMove)
+      document.addEventListener('mouseup', handleGlobalMouseUp)
+      document.addEventListener('mouseleave', handleGlobalMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove)
+      document.removeEventListener('mouseup', handleGlobalMouseUp)
+      document.removeEventListener('mouseleave', handleGlobalMouseUp)
+    }
+  }, [isPanningState, handlePanMove, handlePanEnd])
 
   return {
     // Transform data
@@ -142,7 +177,7 @@ export function useViewport({ containerRef }: UseViewportOptions) {
     
     // Utilities
     fitToContent,
-    isPanning: isPanning.current,
+    isPanning: isPanningState,
     isSpacePressed,
   }
 }
