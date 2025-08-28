@@ -63,29 +63,39 @@ export function SvgViewport({
           getCursorStyle()
         )}
         style={{ width, height }}
-        onMouseDown={(e) => {
-          // Space + drag has highest priority for panning
-          if (isSpacePressed) {
-            e.preventDefault()
-            handlePanStart(e)
-          } else if ((tool === 'pan' || e.button === 1) && tool !== 'pen') { 
-            // Middle mouse button or pan tool, but not when pen is active
-            handlePanStart(e)
-          }
-        }}
-        onMouseMove={(e) => {
-          if (isPanning) {
-            handlePanMove(e)
-          }
-        }}
-        onMouseUp={handlePanEnd}
-        onMouseLeave={handlePanEnd}
       >
         <svg
           width="100%"
           height="100%"
           viewBox={`0 0 ${width} ${height}`}
           className="absolute inset-0"
+          onMouseDown={(e) => {
+            // Space + drag has highest priority for panning
+            if (isSpacePressed) {
+              e.preventDefault()
+              e.stopPropagation()
+              handlePanStart(e)
+            } else if ((tool === 'pan' || e.button === 1) && tool !== 'pen') {
+              // Middle mouse button or pan tool, but not when pen is active
+              handlePanStart(e)
+            }
+          }}
+          onMouseMove={(e) => {
+            if (isPanning) {
+              e.stopPropagation()
+              handlePanMove(e)
+            }
+          }}
+          onMouseUp={(_e) => {
+            if (isPanning) {
+              handlePanEnd()
+            }
+          }}
+          onMouseLeave={(_e) => {
+            if (isPanning) {
+              handlePanEnd()
+            }
+          }}
         >
           <defs>
             {gridVisible && (
@@ -116,7 +126,7 @@ export function SvgViewport({
             {children}
           </g>
           
-          {/* Drawing overlay for interactive path creation - outside transform for proper event handling */}
+          {/* Drawing overlay for interactive path creation */}
           <DrawingOverlay screenToSVG={screenToSVG} isSpacePressed={isSpacePressed} />
         </svg>
       </div>
