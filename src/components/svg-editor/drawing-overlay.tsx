@@ -5,9 +5,10 @@ import type { SVGPoint } from '@/types'
 
 interface DrawingOverlayProps {
   screenToSVG: (screenX: number, screenY: number) => SVGPoint
+  isSpacePressed?: boolean
 }
 
-export function DrawingOverlay({ screenToSVG }: DrawingOverlayProps) {
+export function DrawingOverlay({ screenToSVG, isSpacePressed }: DrawingOverlayProps) {
   const { tool } = useEditorStore()
   const {
     isDrawing,
@@ -24,7 +25,7 @@ export function DrawingOverlay({ screenToSVG }: DrawingOverlayProps) {
     return () => document.removeEventListener('keydown', handleKeyPress)
   }, [handleKeyPress])
 
-  if (tool !== 'pen') return null
+  if (tool !== 'pen' || isSpacePressed) return null
 
   return (
     <>

@@ -25,7 +25,6 @@ export function SvgViewport({
     screenToSVG,
     handleWheelZoom,
     handlePanStart,
-    handleSpacePanStart,
     handlePanMove,
     handlePanEnd,
     isPanning,
@@ -65,11 +64,13 @@ export function SvgViewport({
         )}
         style={{ width, height }}
         onMouseDown={(e) => {
-          if ((tool === 'pan' || e.button === 1) && tool !== 'pen') { // Middle mouse button or pan tool, but not when pen is active
+          // Space + drag has highest priority for panning
+          if (isSpacePressed) {
+            e.preventDefault()
             handlePanStart(e)
-          } else {
-            // Handle space + drag for panning
-            handleSpacePanStart(e)
+          } else if ((tool === 'pan' || e.button === 1) && tool !== 'pen') { 
+            // Middle mouse button or pan tool, but not when pen is active
+            handlePanStart(e)
           }
         }}
         onMouseMove={(e) => {
@@ -116,7 +117,7 @@ export function SvgViewport({
           </g>
           
           {/* Drawing overlay for interactive path creation - outside transform for proper event handling */}
-          <DrawingOverlay screenToSVG={screenToSVG} />
+          <DrawingOverlay screenToSVG={screenToSVG} isSpacePressed={isSpacePressed} />
         </svg>
       </div>
     </div>
@@ -170,6 +171,7 @@ interface GridNumbersProps {
 
 function GridNumbers({ transform, width, height }: GridNumbersProps) {
   const baseGridSize = 20
+  const gridSize = baseGridSize * transform.scale
   const numberSpacing = baseGridSize * 5 * transform.scale // Every 5 grid units
   
   if (numberSpacing < 50) return null // Only show numbers when there's enough space
@@ -183,7 +185,8 @@ function GridNumbers({ transform, width, height }: GridNumbersProps) {
   // Add horizontal numbers (x-axis)
   for (let x = startX; x < width + numberSpacing; x += numberSpacing) {
     if (x >= 0 && x <= width) {
-      const gridValue = Math.round((x - transform.translateX) / (baseGridSize * transform.scale)) * 5
+      // Calculate actual grid value without multiplying by 5
+      const gridValue = Math.round((x - transform.translateX) / gridSize) * 5
       gridNumbers.push(
         <text
           key={`x-${gridValue}`}
@@ -203,7 +206,8 @@ function GridNumbers({ transform, width, height }: GridNumbersProps) {
   // Add vertical numbers (y-axis)
   for (let y = startY; y < height + numberSpacing; y += numberSpacing) {
     if (y >= 15 && y <= height) { // Offset to avoid overlap with x-axis numbers
-      const gridValue = Math.round((y - transform.translateY) / (baseGridSize * transform.scale)) * 5
+      // Calculate actual grid value without multiplying by 5
+      const gridValue = Math.round((y - transform.translateY) / gridSize) * 5
       gridNumbers.push(
         <text
           key={`y-${gridValue}`}

@@ -72,13 +72,6 @@ export function useViewport({ containerRef }: UseViewportOptions) {
     lastPanPoint.current = { x: event.clientX, y: event.clientY }
   }, [])
 
-  const handleSpacePanStart = useCallback((event: React.MouseEvent) => {
-    if (isSpacePressed.current) {
-      isPanning.current = true
-      lastPanPoint.current = { x: event.clientX, y: event.clientY }
-    }
-  }, [])
-
   const handlePanMove = useCallback((event: React.MouseEvent) => {
     if (!isPanning.current) return
     
@@ -106,7 +99,7 @@ export function useViewport({ containerRef }: UseViewportOptions) {
   // Handle space key for panning
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code === 'Space' && !event.repeat) {
+      if (event.code === 'Space' && !event.repeat && document.activeElement?.tagName !== 'INPUT') {
         event.preventDefault()
         isSpacePressed.current = true
       }
@@ -116,7 +109,9 @@ export function useViewport({ containerRef }: UseViewportOptions) {
       if (event.code === 'Space') {
         event.preventDefault()
         isSpacePressed.current = false
-        isPanning.current = false
+        if (isPanning.current) {
+          isPanning.current = false
+        }
       }
     }
 
@@ -142,7 +137,6 @@ export function useViewport({ containerRef }: UseViewportOptions) {
     // Event handlers
     handleWheelZoom,
     handlePanStart,
-    handleSpacePanStart,
     handlePanMove,
     handlePanEnd,
     
