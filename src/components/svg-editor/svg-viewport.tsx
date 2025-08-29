@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, Children, cloneElement, isValidElement } from 'react'
+import { useRef, useEffect, useState, useCallback, Children, cloneElement, isValidElement } from 'react'
 import { useViewport } from '@/hooks/use-viewport'
 import { useEditorStore } from '@/stores/editor-store'
 import { DrawingOverlay } from './drawing-overlay'
@@ -15,7 +15,7 @@ export function SvgViewport({
 }: SvgViewportProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-  const { gridVisible, tool } = useEditorStore()
+  const { gridVisible, tool, setSelectedPath } = useEditorStore()
   
   const {
     transform,
@@ -82,6 +82,40 @@ export function SvgViewport({
     }
   }
 
+  const handleCanvasClick = useCallback((event: React.MouseEvent) => {
+    // Only handle canvas clicks with select tool
+    if (tool !== 'select') return
+    
+    const target = event.target as Element
+    
+    // Check if clicked on empty space (SVG, grid, or background elements)
+    const isEmptySpace = 
+      target === event.currentTarget || // SVG itself
+      target.tagName === 'rect' && target.getAttribute('fill') === 'url(#grid)' || // Grid background
+      target.tagName === 'text' || // Grid numbers
+      target.tagName === 'pattern' || // Grid pattern
+      target.tagName === 'path' && target.getAttribute('stroke') === 'hsl(var(--border))' // Grid lines
+    
+    if (isEmptySpace) {
+      event.preventDefault()
+      event.stopPropagation()
+      // Deselect any selected path
+      setSelectedPath(undefined)
+    }
+  }, [tool, setSelectedPath])
+
+  // Handle Esc key to deselect
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && tool === 'select') {
+        setSelectedPath(undefined)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [tool, setSelectedPath])
+
   // Don't render SVG until we have valid dimensions
   if (dimensions.width === 0 || dimensions.height === 0) {
     return (
@@ -119,6 +153,7 @@ export function SvgViewport({
               handlePanStart(e)
             }
           }}
+          onClick={handleCanvasClick}
         >
           <defs>
             {gridVisible && (
@@ -133,13 +168,30 @@ export function SvgViewport({
           {/* Grid background - outside of transform group */}
           {gridVisible && (
             <>
-              <rect width="100%" height="100%" fill="url(#grid)" />
+              <rect 
+                width="100%" 
+                height="100%" 
+                fill="url(#grid)"
+                onClick={handleCanvasClick}
+                className="cursor-default"
+              />
               <GridNumbers
                 transform={transform}
                 width={dimensions.width}
                 height={dimensions.height}
               />
             </>
+          )}
+
+          {/* Invisible background for click detection when grid is off */}
+          {!gridVisible && (
+            <rect 
+              width="100%" 
+              height="100%" 
+              fill="transparent"
+              onClick={handleCanvasClick}
+              className="cursor-default"
+            />
           )}
           
           {/* Main content group with transform */}

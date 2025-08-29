@@ -34,6 +34,7 @@ interface PathElementProps {
 }
 
 function PathElement({ path, isSelected, hasSelection, screenToSVG }: PathElementProps) {
+  const { tool, setSelectedPath } = useEditorStore()
   const pathString = useMemo(() => {
     return commandsToPixelPathString(path.commands)
   }, [path.commands])
@@ -54,6 +55,20 @@ function PathElement({ path, isSelected, hasSelection, screenToSVG }: PathElemen
     return isSelected ? 1 : 0.3
   }, [isSelected, hasSelection])
 
+  const handlePathClick = useCallback((event: React.MouseEvent) => {
+    if (tool !== 'select') return
+    
+    event.preventDefault()
+    event.stopPropagation()
+    
+    // Toggle selection: if already selected, deselect; if not selected, select
+    if (isSelected) {
+      setSelectedPath(undefined)
+    } else {
+      setSelectedPath(path.id)
+    }
+  }, [tool, isSelected, path.id, setSelectedPath])
+
   return (
     <g>
       {/* Main path */}
@@ -65,7 +80,8 @@ function PathElement({ path, isSelected, hasSelection, screenToSVG }: PathElemen
         strokeLinecap="round"
         strokeLinejoin="round"
         opacity={opacity}
-        className="transition-all duration-200"
+        className={`transition-all duration-200 ${tool === 'select' ? 'cursor-pointer' : ''}`}
+        onClick={handlePathClick}
       />
       
       {/* Selection highlight */}
