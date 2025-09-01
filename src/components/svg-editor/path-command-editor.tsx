@@ -25,6 +25,61 @@ export function PathCommandEditor() {
     updatePath(selectedPath, { commands: updatedCommands })
   }
 
+  const handleCommandTypeChange = (commandIndex: number, newType: SVGPathCommand['type']) => {
+    const updatedCommands = [...currentPath.commands]
+    const currentCommand = updatedCommands[commandIndex]
+    
+    // Create new command with converted parameters
+    const newCommand: SVGPathCommand = {
+      type: newType,
+      relative: currentCommand.relative,
+      points: convertCommandParameters(currentCommand, newType)
+    }
+    
+    updatedCommands[commandIndex] = newCommand
+    updatePath(selectedPath, { commands: updatedCommands })
+  }
+
+  const convertCommandParameters = (oldCommand: SVGPathCommand, newType: SVGPathCommand['type']): number[] => {
+    const oldPoints = oldCommand.points
+    
+    // Get the expected number of parameters for the new command type
+    const getParameterCount = (type: SVGPathCommand['type']): number => {
+      switch (type) {
+        case 'M': case 'L': case 'T': return 2
+        case 'H': case 'V': return 1
+        case 'S': case 'Q': return 4
+        case 'C': return 6
+        case 'A': return 7
+        case 'Z': return 0
+        default: return 2
+      }
+    }
+    
+    const targetCount = getParameterCount(newType)
+    const currentCount = oldPoints.length
+    
+    if (targetCount === 0) {
+      return []
+    } else if (currentCount >= targetCount) {
+      // Truncate if we have too many parameters
+      return oldPoints.slice(0, targetCount)
+    } else {
+      // Pad with the last coordinate pair or zeros if we need more parameters
+      const newPoints = [...oldPoints]
+      while (newPoints.length < targetCount) {
+        if (newPoints.length >= 2) {
+          // Repeat the last coordinate pair
+          newPoints.push(newPoints[newPoints.length - 2], newPoints[newPoints.length - 1])
+        } else {
+          // Add zeros
+          newPoints.push(0)
+        }
+      }
+      return newPoints.slice(0, targetCount)
+    }
+  }
+
   const getCommandDisplayName = (command: SVGPathCommand) => {
     return command.relative ? command.type.toLowerCase() : command.type
   }
@@ -75,9 +130,35 @@ export function PathCommandEditor() {
             return (
               <div key={commandIndex} className="bg-muted/50 rounded p-2 space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold w-6 text-center bg-primary text-primary-foreground rounded">
-                    {displayName}
-                  </span>
+                  <select
+                    value={command.type}
+                    onChange={(e) => handleCommandTypeChange(commandIndex, e.target.value as SVGPathCommand['type'])}
+                    className="text-xs font-mono font-bold w-8 text-center bg-primary text-primary-foreground rounded border-none outline-none appearance-none cursor-pointer"
+                  >
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="H">H</option>
+                    <option value="V">V</option>
+                    <option value="C">C</option>
+                    <option value="S">S</option>
+                    <option value="Q">Q</option>
+                    <option value="T">T</option>
+                    <option value="A">A</option>
+                    <option value="Z">Z</option>
+                  </select>
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      checked={command.relative}
+                      onChange={(e) => {
+                        const updatedCommands = [...currentPath.commands]
+                        updatedCommands[commandIndex] = { ...command, relative: e.target.checked }
+                        updatePath(selectedPath, { commands: updatedCommands })
+                      }}
+                      className="w-3 h-3"
+                    />
+                    <span className="text-xs text-muted-foreground">rel</span>
+                  </label>
                   <span className="text-xs text-muted-foreground">
                     {command.type === 'Z' ? 'Close Path' : `${command.points.length} values`}
                   </span>
