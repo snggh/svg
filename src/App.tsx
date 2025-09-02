@@ -4,6 +4,15 @@ import { PathCommandEditor } from '@/components/svg-editor/path-command-editor'
 import { useEditorStore } from '@/stores/editor-store'
 import { parsePathString } from '@/utils/svg/path-parser'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { 
+  MousePointer2, 
+  Pen, 
+  Hand, 
+  Grid3X3,
+  RotateCcw,
+  Spline
+} from 'lucide-react'
 import type { SVGPath } from '@/types'
 
 function App() {
@@ -57,14 +66,18 @@ function App() {
               variant="outline"
               size="sm"
               onClick={toggleGrid}
+              className="flex items-center gap-2"
             >
+              <Grid3X3 className="w-4 h-4" />
               Grid {gridVisible ? 'On' : 'Off'}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={resetView}
+              className="flex items-center gap-2"
             >
+              <RotateCcw className="w-4 h-4" />
               Reset View
             </Button>
             <span className="text-sm text-muted-foreground">
@@ -79,62 +92,74 @@ function App() {
         {/* Sidebar */}
         <aside className="w-64 border-r border-border bg-muted/20 p-4">
           <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Tools</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant={tool === 'select' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTool('select')}
-                >
-                  Select
-                </Button>
-                <Button
-                  variant={tool === 'pen' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTool('pen')}
-                >
-                  Pen
-                </Button>
-                <Button
-                  variant={tool === 'bezier' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTool('bezier')}
-                >
-                  Bezier
-                </Button>
-                <Button
-                  variant={tool === 'pan' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTool('pan')}
-                >
-                  Pan
-                </Button>
-              </div>
-            </div>
+            <Card>
+              <CardContent className="p-3">
+                <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                  Tools
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant={tool === 'select' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTool('select')}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <MousePointer2 className="w-4 h-4" />
+                    Select
+                  </Button>
+                  <Button
+                    variant={tool === 'pen' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTool('pen')}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <Pen className="w-4 h-4" />
+                    Pen
+                  </Button>
+                  <Button
+                    variant={tool === 'bezier' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTool('bezier')}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <Spline className="w-4 h-4" />
+                    Bezier
+                  </Button>
+                  <Button
+                    variant={tool === 'pan' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTool('pan')}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <Hand className="w-4 h-4" />
+                    Pan
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div>
-              <h3 className="text-sm font-medium mb-2">Paths</h3>
-              <div className="space-y-1 max-h-40 overflow-y-auto">
-                {paths.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No paths yet</p>
-                ) : (
-                  paths.map(path => (
-                    <button
-                      key={path.id}
-                      className={`w-full text-left px-2 py-1 rounded text-xs ${
-                        selectedPath === path.id
-                          ? 'bg-primary text-primary-foreground'
-                          : 'hover:bg-muted'
-                      }`}
-                      onClick={() => setSelectedPath(path.id === selectedPath ? undefined : path.id)}
-                    >
-                      {path.id}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
+            <Card>
+              <CardContent className="p-3">
+                <h3 className="text-sm font-medium mb-3">Paths</h3>
+                <div className="space-y-1 max-h-40 overflow-y-auto">
+                  {paths.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">No paths yet</p>
+                  ) : (
+                    paths.map(path => (
+                      <Button
+                        key={path.id}
+                        variant={selectedPath === path.id ? 'default' : 'ghost'}
+                        size="sm"
+                        className="w-full justify-start text-xs h-8"
+                        onClick={() => setSelectedPath(path.id === selectedPath ? undefined : path.id)}
+                      >
+                        {path.id}
+                      </Button>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
             
             {/* Path Command Editor */}
             <PathCommandEditor />

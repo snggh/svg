@@ -59,7 +59,14 @@ export function commandsToPixelPathString(commands: SVGPathCommand[]): string {
     .map(cmd => {
       const letter = cmd.relative ? cmd.type.toLowerCase() : cmd.type
       // Convert grid coordinates to pixel coordinates
-      const pixelPoints = cmd.points.map(point => point * BASE_GRID_SIZE)
+      // Special handling for Arc (A) command flags
+      const pixelPoints = cmd.points.map((point, index) => {
+        // For Arc commands, large-arc and sweep flags should not be scaled
+        if (cmd.type === 'A' && (index === 3 || index === 4)) {
+          return point
+        }
+        return point * BASE_GRID_SIZE
+      })
       const points = pixelPoints.join(' ')
       return `${letter}${points ? ' ' + points : ''}`
     })
@@ -114,6 +121,12 @@ export function toAbsolute(commands: SVGPathCommand[]): SVGPathCommand[] {
         absoluteCmd.points[1] += currentPoint.y
         absoluteCmd.points[2] += currentPoint.x
         absoluteCmd.points[3] += currentPoint.y
+        break
+      case 'A':
+        // For Arc commands, only the end point (x,y) needs to be made absolute
+        // rx, ry, rotation, large-arc-flag, sweep-flag stay the same
+        absoluteCmd.points[5] += currentPoint.x // x
+        absoluteCmd.points[6] += currentPoint.y // y
         break
     }
 
@@ -177,6 +190,12 @@ export function toRelative(commands: SVGPathCommand[]): SVGPathCommand[] {
         relativeCmd.points[2] -= currentPoint.x
         relativeCmd.points[3] -= currentPoint.y
         break
+      case 'A':
+        // For Arc commands, only the end point (x,y) needs to be made relative
+        // rx, ry, rotation, large-arc-flag, sweep-flag stay the same
+        relativeCmd.points[5] -= currentPoint.x // x
+        relativeCmd.points[6] -= currentPoint.y // y
+        break
     }
 
     result.push(relativeCmd)
@@ -215,6 +234,10 @@ function updateCurrentPoint(
     case 'Q':
       currentPoint.x = cmd.points[2]
       currentPoint.y = cmd.points[3]
+      break
+    case 'A':
+      currentPoint.x = cmd.points[5]
+      currentPoint.y = cmd.points[6]
       break
     case 'Z':
       currentPoint.x = startPoint.x
